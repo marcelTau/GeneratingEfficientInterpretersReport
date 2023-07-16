@@ -21,16 +21,17 @@ Generating efficient interpreters is a project aiming to help programming
 language developers to be able to quickly build interpreters for their language
 in a few simple steps.
 
-At the time the program consists of a compiler that takes the source code of
-the programming language described in the book (TODO) Imp.
-and outputs bytecode. The structure of the bytecode and the syntax of the
-language it self will be described in a later section of this paper (TODO ADD REFERENCE).
+At the moment the program consists of a compiler that takes the source code of
+the programming language described in the book ~\cite{Pierce:SF1} Imp and
+outputs bytecode. The structure of the bytecode and the syntax of the language
+will be described in a later section of this paper.
 
 If you have ever written multiple compilers or interpreters yourself you might
 have realized that many parts of the program are very repetitive and not too
 depended on the syntax of the language that you're building the interpreter
-for. Many parts like the code generation (TODO) are very similar every time and
-can be generated quite easily. In addtion to that the user can provide a
+for. Many parts like the code for executing an instruction, fetching an
+instruction or the code generation are very similar every time and can be
+generated quite easily ~\cite{vmgen}. In addtion to that the user can provide a
 configuration file that describes possible missing parts in detail and modify
 the generation without writing any code.
 
@@ -43,17 +44,18 @@ can be archived without needing to write a lot of code.
 
 \section{Technical description} 
 Currently the compiler is written to work with source code of the programming
-language "Imp". This is a simple imperative programming language which uses
-just a few keywords and a clear syntax which makes it perfect to start with in
-this project. The future work section of this paper will go into detail about
-how we can extend this project to work with a real programming language.
+language "Imp" ~\cite{Pierce:SF1}. This is a simple imperative programming
+language which uses just a few keywords and a clear syntax which makes it
+perfect to start with in this project. The future work section of this paper
+will go into detail on how we can extend this project to work with a real
+programming language.
 
 This is an example of Imp.
 \begin{verbatim}
     Z := X;
     Y := 1;
     while Z != 0 do
-        Y := Y × Z;
+        Y := Y * Z;
         Z := Z - 1;
     end
 \end{verbatim}
@@ -84,16 +86,16 @@ pub enum ByteCode {
 }
 \end{verbatim}
 
-At the moment the complier is held pretty simple and not all the features that
-are possible in "Imp" are implemented. 
+At the moment, the complier is held pretty simple and not all the features that
+are possible in "Imp" ~\cite{Pierce:SF1} are implemented. 
 
 Currently none of the control flow featrues are implemented since we're missing
 instructions for conditional jumps.
 
-For debugging convenience we've also added a new keyword ('print') to the
+For debugging convenience, we've also added a new keyword ('print') to the
 language which prints the content of the given variable.
 
-Since "Imp" does not have scope management we store all variables in a global
+Since "Imp" does not have scope management, we store all variables in a global
 table held in the bytecode generator structure in the rust code.
 
 \section{Future Work}
@@ -103,16 +105,16 @@ missing until we have a working version that can be benchmarked.
 The next step is to implement conditional jumps and by that being able
 to compile programs that use if-statements or loops.
 
-Then we have think about different optimizations that we want to implement and 
-build them.
+Then we have to think about different optimizations that we want to implement
+and build.
 
 At this point we have a fully working compiler for the "Imp" programming language
-and we can start benchmarking the performance of it.
+and we can start benchmarking it's performance.
 
-One step to getting closer to work with a real programming language is to
+One step to get closer to work with a real programming language is to
 implement scope management.
 
-Then we can think about modifying the compiler to work with Lua for example.
+Then for example, we can think about modifying the compiler to work with Lua.
 
 \clearpage
 \bibliographystyle{plain}
