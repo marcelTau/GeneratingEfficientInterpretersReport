@@ -1,0 +1,172 @@
+\documentclass{article}
+\title{Critical Review of \texttt{vmgen}}
+\author{
+    Marcel Taubert  (mt652)\\
+    20962335        \\
+    \\
+    School of Computing \\
+    MSc Advanced Computer Science\\
+    University of Kent \\
+    \\
+    Supervisor: Dr. Michael Vollmer
+}
+\usepackage{natbib,hyperref}
+\date{\today}
+\begin{document}
+\maketitle
+\clearpage
+
+\section{Introduction}
+
+%1. Introduction: objectives, intro to contents (overview)
+    %- what is a vm interpreter
+    %- how does a vm interpreter work
+    %- difference between stack and register based vm
+    %- what are optimizations, what optimizations are we using
+    %- what kind of optimizations are there
+    %- code generation (from a config file)
+%3. description of the problem
+    %- many parts of interpreter writing can be automated 
+    %- why should we care about efficieny in interpreter
+%6. literature and technology review, (what papers, vmgen??)
+    %- what it says and how it relates to my project
+%7. possible approaches and reason why we choose this approach
+    %- by hand is hard
+    %- doing it automatically
+    %- what optimizations
+    %- why rust not C (why others did it in C, what can you do in C)
+    %- why for the Imp programming language
+%8. description of work that we did 
+    %- vm (stack, why tho)
+    %- interpreter (visitor pattern)
+    %- parser and scanner (not generated, why)
+    %- bytecode design (why and how does it work)
+    %- bytecode generator
+    %- bytecode interpreter (visitor pattern)
+    %- what is the input language
+    %- optimizations (superinstructions, computed go-to)
+    %- benchmark program
+%10. Results: tests, benchmarks, what kind of programs
+%11. Summary, Conclusion
+%12. future work (automation)
+%13. Bibliography
+
+%/*
+%What is an interpreter?
+%- Programming is everywhere
+%- 2 ways how code is run (compiler and interpreter)
+%- whats good about interpreters
+%*/
+
+In the modern world we live in today, everything is controlled by code.
+Everyone of us is using technology controlled by code, if they want it or not.
+But not many people know how the code that programmers around the world write
+gets executed on their device.
+
+
+\subsection{What is an interpreter?}
+In general there are two ways to execute code. Both approaches include the
+process of translating the human readable code into something that the computer
+can understand. 
+
+
+During the first technique the code is compiled (translated) into machine code.
+The end product is a stand alone program that can be executed at any time.
+
+
+The second approach is called 'interpreting'. In this case the compiler does not
+output machine code but produces a bytecode that will be executed by another
+program (the interpreter).
+
+
+Interpreters are generally easier to implement and have some other advantages
+that makes them more approachable than compilers like portability or a fast
+edit-compile-run cycle as stated by the authors of vmgen ~\cite{vmgen}. 
+
+%/*
+%what is a vm interpreter?
+%- create intermediate representation that is similar to a real machine
+%- series of bytecode instructions
+%- (Frontend) compiler that produces this bytecode (written in rust)
+%- (Backend) vm interpreter that executes the instructions
+%- Some examples of vm interpreters (JVM, PVM (python))
+%*/
+
+\subsection{What is a virtual machine interpreter?}
+A famous technique to implement interpreters is to build a virtual machine
+interpreter. A vm interpreter is generally divided into two systems. A frontend
+and a backend. ~\cite{vmgen}
+
+The frontend consists of a compiler that takes the written code and produces a
+sequence of bytecode instructions. The backend is a virtual machine that gets
+the stream of bytecode instructions as input and executes them. ~\cite{vmgen}
+
+The bytecode or intermediate representation used in a vm interpreter is usually
+designed to be very similar to a real machine. ~\cite{vmgen}
+
+Some real world examples of virtual machine interpreters are for example the
+JVM (Java Virtual Machine) or the PVM (Python Virtual Machine). (TODO: link to them???)
+
+
+\subsection{Virtual machine}
+When we are talking about virtual machines we distinguish between stack based vm's and 
+register based vm's.
+
+Each of the version has it's advantages and disadvantages.
+
+Stack based virtual machines are generally easier to implement than the register based approach.
+That shows for example in the complexity of the intermediate representation used in the virtual 
+machine. The stack based bytecode has a tendency of being smaller and by that more efficient in 
+comparison to the rather complex bytecode instructions of the register based approach.
+
+\begin{verbatim}
+typical stack based instruction:
+Push 1    -- push value to the stack
+\end{verbatim}
+
+\begin{verbatim}
+typical register based instruction:
+LD R1, 42 -- load value `42` into register R1
+\end{verbatim}
+
+This simplicity is the reason we have to decided to rely on a stack based virtual machine in
+this paper.
+
+\subsection{Optimizations}
+When you are running your Java program the compiler does not just generate bytecode for
+the JVM from your written code. The compiler will try it's best to optimize as much as possible
+to ensure that the execution of the produced bytecode will be as fast as possible.
+This optimization part of the compiler is by far one of the most crucial tasks of a compiler.
+
+During the development of this project we have looked at a number of different
+optimizations. Some of the optimizations that we have implemented for the
+project are threaded code and peephole optimizations (superinstructions) (TODO:
+SHOULD I EXPLAIN THEM HERE)
+
+
+\subsection{Automation}
+Writing an interpreter for a programming language can be a tedious and
+challenging task on it's own. Thinking about how to keep the code efficient and
+additionally implement optimizations makes it even harder.
+
+One solution to this is automating the process of writing a virutal machine inter
+
+The next section will, among other things, discuss 
+
+
+exploration to create vm interpreter in rust - what are the negatives
+
+
+A final objective of this paper is to automatically generate the code for a vm interpreter
+based on a config file that the user of the program has to provide. But more on this in 
+
+\section{Critique}
+\section{Synthesis}
+\clearpage
+\bibliographystyle{plain}
+\bibliography{dissertation}
+\end{document}
+
+%what to do?
+%write test programs, find superinstructions, do benchmarks, mandelbrot
+
