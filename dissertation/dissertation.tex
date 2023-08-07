@@ -1,5 +1,5 @@
 \documentclass{article}
-\title{Critical Review of \texttt{vmgen}}
+\title{Dissertation}
 \author{
     Marcel Taubert  (mt652)\\
     20962335        \\
@@ -36,6 +36,7 @@
     %- what optimizations
     %- why rust not C (why others did it in C, what can you do in C)
     %- why for the Imp programming language
+    %- why not compile to C code (2nd paper)
 %8. description of work that we did 
     %- vm (stack, why tho)
     %- interpreter (visitor pattern)
@@ -149,19 +150,78 @@ Writing an interpreter for a programming language can be a tedious and
 challenging task on it's own. Thinking about how to keep the code efficient and
 additionally implement optimizations makes it even harder.
 
-One solution to this is automating the process of writing a virutal machine inter
+One solution to this is automating the process of writing a virutal machine interpreter
+by providing a configuration file.
 
-The next section will, among other things, discuss 
+\subsection{Objectives}
+This paper will use the Rust programming language to build each part of a virtual machine 
+interpreter with the optimal goal of automating the generation of it self depending on
+a given configuration of a user.
 
+We will explore techniques and approaches on how to build a vm interpreter in Rust and
+use benchmarking to visualize results depending on applied optimizations.
 
-exploration to create vm interpreter in rust - what are the negatives
+\section{Description of the problem}
+\subsection{Efficiency}
+In terms of efficiency at run time of a program nativ compiled machine code
+will always outperform the interpreted version. So why would we even care
+about writing efficient interpreters and not just use native code compilers.
 
+One of the main reasons interpreters are preferred over compilers is that 
+native code compilers are more complex to develop and difficult to maintain.
+~\cite{structure_and_performance}
 
-A final objective of this paper is to automatically generate the code for a vm interpreter
-based on a config file that the user of the program has to provide. But more on this in 
+Another big advantage of the interpreting approach is that compilers can only
+generate native code for one target system while the virtual machine
+interpreter stays the same on every system. By that the interpreter is portable
+and the generated code does not depend on the underlaying machine.
 
-\section{Critique}
-\section{Synthesis}
+\subsection{Automation}
+Many programmers will come to the idea of implementing their own programming
+language at some point in their career. Most of them will have noticed that
+buidling an interpreter is a challenging task and requires a lot of work and
+a clear structure. In addition to that it shows that many parts of an vm
+interpreter are similar and repetitive. For example the code for executing 
+VM instructions will be similar for most of the instructions. ~\cite{vmgen}
+
+But what happens when the interpreter does not give the expected outcome in
+terms of efficiency. It results in manual rewriting of a codebase just to
+change the implementation of some part of the vm interpreter to see if the
+performance increases.
+Rewriting the whole interpreter to test if the performance is better using
+a different development approach is not only time consuming but also error 
+prone.
+
+One solution to this problem is automation. The user should be able to provide
+a configuration file and based on that we will generate an efficient vm 
+interpreter. It will already use efficient implementation techniques and come
+with built in optimizations. It also provides easy extensibility for the user
+without needing to change any source code.
+
+\section{Description of work}
+The goal of this project is to build an virtual machine interpreter and 
+explore the implementation of such in the Rust programming language.
+
+\subsection{Tools used}
+During the development of this project we used two programming languages. We
+build the virtual machine and all parts of the interpreter in Rust and used 
+Python to visualize any benchmarking results.
+
+But why did we use Rust and not the C programming language like most other
+systems do?
+One reason for that is that as stated before most of the already existing
+solutions are written in C and we wanted to explore something new.
+Another reason why we decided to use Rust is that we were looking for a low level
+systems programming language that allows us to work as efficient as possible
+while still offering high level features like match statements and iterators.
+An extension to that is Rust's expressive type system and strict memory
+management rules which helps avoiding many kinds of errors that appear in 
+standard C programming.
+
+\subsection{VM} % stack based, show bytecode, reason about bytecode in rust enum
+\subsection{Interpreter} % parser, scanner (not generated), 
+\subsection{Optimizations} % explaination of the optimizations
+
 \clearpage
 \bibliographystyle{plain}
 \bibliography{dissertation}
@@ -169,4 +229,5 @@ based on a config file that the user of the program has to provide. But more on 
 
 %what to do?
 %write test programs, find superinstructions, do benchmarks, mandelbrot
+%format of dis
 
