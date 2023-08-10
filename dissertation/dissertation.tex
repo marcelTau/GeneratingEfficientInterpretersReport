@@ -227,10 +227,114 @@ An extension to that is Rust's expressive type system and strict memory
 management rules which helps avoiding many kinds of errors that appear in 
 standard C programming.
 
-\subsection{VM} % stack based, show bytecode, reason about bytecode in rust enum
+\subsection{Virtual Machine} % stack based, show bytecode, reason about bytecode in rust enum
+The virtual machine is the part that exectues the byte code that was generated
+by the compiler.
+
+\subsubsection{Implementation}
+The virtual machine we have built is very basic. It contains a representation
+of the stack and a HashMap to hold the variables.
+
+\begin{verbatim}
+pub struct ByteCodeInterpreter {
+    stack: Vec<usize>,
+    pc: i32,
+    variables: HashMap<String, usize>,
+}
+\end{verbatim}
+\textit{ByteCodeInterpreter struct definition} \\
+
+The optimized version of it implementing the `computed goto` optimization (see
+section \ref{it:goto}) is a bit more complicated. Here we also have the mapping
+of ByteCode to the function that executes this bytecode. This optimization is 
+described in more detail at \ref{it:goto}.
+
+\begin{verbatim}
+pub struct ByteCodeInterpreterThreaded {
+    stack: Vec<usize>,
+    pc: i32,
+    variables: HashMap<String, usize>,
+    ops: HashMap<Discriminant<ByteCode>, Instruction>,
+    instructions: Vec<ByteCode>,
+}
+\end{verbatim}
+\textit{ByteCodeInterpreterThreaded struct definition} \\
 
 
-\subsection{Interpreter} % parser, scanner (not generated), 
+\subsubsection{Stack}
+The virtual machine we built is stack based. This means there are no registers
+and everything happens on the stack.
+
+When you add two numbers there will be a `push` instruction for both values
+and an add instruction which will pop the last two values from the stack,
+adds them together and pushes the result back on the stack.
+
+\begin{verbatim}
+The code `1 + 2` would produce the following instructions:
+
+inst:    stack:
+         []
+push 1   [1]
+push 2   [1, 2]
+add      [3]
+\end{verbatim}
+
+\subsubsection{Byte code}
+To define a byte code we have decided to use Rust's powerful enums. They are
+not only able to perfectly represent each instruction with it's parameters but
+also helps during development due to Rust's powerful type system.
+
+\begin{verbatim}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum ByteCode {
+    Push(usize),
+    Pop,
+    Add,
+    Sub,
+    Mul,
+    Var(String),
+    Eq,
+    NEq,
+    Lt,
+    Gt,
+    Lte,
+    Jz {
+        label: String,
+        offset: i32,
+    },
+    ...
+}
+
+\end{verbatim}
+\textit{Rust representation of the Byte Code} \\
+
+One downside of using the convenient Rust way of using enums to represent byte
+code is that they are relatively large in memory.
+
+One byte code instruction adds up to 32 bits in memory. 
+Enums in rust behave like a tagged union. That means the size of each variant
+is equal to the size of the biggest field + an enum tag.
+
+The largest field in our byte code representation is the Jz label. It contains
+a String and an i32.
+
+\begin{verbatim}
+A string in Rust contains:
+    8 bits -> pointer to the chars
+    8 bits -> len of the string
+    4 bits -> the i32 value
+    8 bits -> enum tag
+    + padding
+
+    adds up to 32 bits.
+\end{verbatim}
+
+This decision might be good for developing since the Rust compiler will warn 
+if you for example forget a variant in a match statement but it is not really
+efficient.
+
+\subsection{Interpreter}
 The interpreter consists of a scanner and a parser. We have decided to
 handwrite both parts instead of generating them. Even though the scanner and
 the parser are not the most performance critical parts of an interpreter we
@@ -409,6 +513,7 @@ Some common techniques are:
 
 
     \item \textbf{Computed goto}:\\
+    \label{it:goto}
         When executing the bytecode inside of a virtual machine interpreter for
         example you will usually find a big switch statement inspecting the
         current instruction and executing it. In our case, since we used Rust
