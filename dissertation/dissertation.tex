@@ -70,15 +70,22 @@ In general there are two ways to execute code. Both approaches include the
 process of translating the human readable code into something that the computer
 can understand. 
 
-
 During the first technique the code is compiled (translated) into machine code.
-The end product is a stand alone program that can be executed at any time.
+The end product is a stand alone program that can be executed at any time on the
+architecture it was compiled for.
 
+The second approach is called 'interpreting'. There are two primary methods
+to how an interpreter works. One approach is called a tree-walk interpreter.
 
-The second approach is called 'interpreting'. In this case the compiler does not
-output machine code but produces a bytecode that will be executed by another
-program (the interpreter).
+In this case the interpreter just walks the generated abstract syntax tree
+and executes it.
 
+The second approach is a virtual machine interpreter which involves an extra
+step between the generation of the syntax tree and the execution. A compiler
+walks the tree and generates byte code. This bytecode will then be fed into
+the virtual machine which executes it.
+
+We will use a virtual machine interpreter in this paper.
 
 Interpreters are generally easier to implement and have some other advantages
 that makes them more approachable than compilers like portability or a fast
@@ -310,7 +317,6 @@ pub trait StmtVisitor<T> {
 
 For each statement we have setup a structure holding the necessary data.
 
-
 \begin{verbatim}
 #[derive(Debug)]
 pub struct IfStmt {
@@ -323,9 +329,248 @@ pub struct IfStmt {
 
 
 \subsection{Optimizations} % explaination of the optimizations
+Optimizaions play a critical role in the field of compiler design. There are many
+ways to optimize code.
+
+Some common techniques are:
+\begin{enumerate}
+    \item \textbf{Dead Code Elimination}:\\
+        Remove parts of the code that are never to be used.
+
+        Consider the follwing C code. In this case the variable `c` is never
+        used so the statement `int c = 3;` does not need to be compiled
+        \begin{verbatim}
+        int main() {
+            int a = 1;
+            int b = 2;
+            int c = 3; // never used
+
+            return a + b;
+        }
+        \end{verbatim}
+    \item \textbf{Constant folding}:\\
+        When calcualtions are only using constant values and by that can be
+        evaluated during compile time it will directly replace it with the
+        computed value.
+
+        Consider the follwing C code. In this example `int a = 10 + 20;` only uses values known
+        at compile time so the compiler can internally replace the statement with `int a = 30;`.
+        \begin{verbatim}
+        int main() {
+            int a = 10 + 20;
+            printf("%d", a);
+
+            return 0;
+        }
+        \end{verbatim}
+    \item \textbf{Superinstructions}:\\
+        Superinstructions is a term used for the case when combining two or more instructions 
+        into a single big instruction.
+
+        Consider the following C code.
+
+        \begin{verbatim}
+        int main() {
+            int i = 0;
+            while (i < 10) {
+                i += 1;
+            }
+        }
+        \end{verbatim}
+
+        If we naively 'compile' this code we would get instructions like this:
+
+        \begin{verbatim}
+
+        // in the loop
+        load i -- get the variable at i and push it to the stack
+        push 1 -- push the value '1' to the stack
+        add    -- pop the first 2 values from the stack, add them, and push the result back on the stack
+
+        \end{verbatim}
+
+        We always need 2 instructions to push the constant value to the stack and then add the top
+        2 values on the stack together.
+
+        But we can create a superinstruction called 'push\_add' which would change the generated
+        code to this.
+
+        \begin{verbatim}
+
+        // in the loop
+        load i     -- get the variable at i and push it to the stack
+        push_add 1 -- superinstruction that does the push and then the add
+
+        \end{verbatim}
+
+        That change might seem very insignificant but we can extend this idea
+        of superinstructions to combine already built superinstructions with
+        each other and by that save many instructions.
+
+
+    \item \textbf{Computed goto}:\\
+        When executing the bytecode inside of a virtual machine interpreter for
+        example you will usually find a big switch statement inspecting the
+        current instruction and executing it. In our case, since we used Rust
+        we have a big match statement like this.
+
+        \begin{verbatim}
+
+        while self.pc < instructions.len() as i32 {
+            let inst = &instructions[self.pc as usize];
+            match inst {
+                ByteCode::Push(value) => {
+                    self.stack.push(*value);
+                }
+                ByteCode::Pop => {
+                    self.stack.pop().unwrap();
+                }
+                ByteCode::Add => {
+                    let a = self.stack.pop().unwrap();
+                    let b = self.stack.pop().unwrap();
+                    self.stack.push(b + a);
+                }
+                ...
+            }
+        }
+        \end{verbatim}
+
+        This `while` loop will iterate over every single instruction in the program. That means
+        for every instruction it has to go through all the possible values inside of the `match`
+        statement until it find the matching result.
+
+        The `Computed goto` optimization tries to make this process more efficient.
+
+        To implement that, we have to create an array of function pointers where
+        the index of the array corresponds to an instruction or use a HashMap
+        with the byte code instruction as the key and the function as a value
+        like we did in Rust.
+
+        \begin{verbatim}
+
+        pub type Instruction = fn(interp: &mut ByteCodeInterpreterThreaded);
+        ... {
+            ops: HashMap<Discriminant<ByteCode>, Instruction>
+        }
+
+        ops.insert(std::mem::discriminant(&ByteCode::Push(0)), Self::op_push);
+        ops.insert(std::mem::discriminant(&ByteCode::Pop), Self::op_pop);
+        ops.insert(std::mem::discriminant(&ByteCode::Add), Self::op_add);
+        \end{verbatim}
+
+        Then each of the functions (Self::op\_push, Self::op\_add, ...) will finish
+        with a call to a `next()` function.
+
+        This next() function will increment the program counter (the index of
+        where we are in the byte code) and call the function which was mapped
+        to the next instruction in the HashMap.
+
+        In our case in Rust the next function looks like the following.
+
+        \begin{verbatim}
+        fn next(&mut self) {
+            // incrementing the program counter;
+            self.pc += 1 
+
+            // check for end of stream
+            if self.pc >= self.instructions.len() as i32 {
+                return; 
+            }
+
+            // call the next function
+            self.ops[&self.instructions[self.pc as usize]](self);
+        }
+        \end{verbatim}
+
+        This threaded code approach results in a short and fast instruction
+        dispatch sequence and can lead to better branch prediction accuracy on
+        machines with branch target buffers as stated by the authors of vmgen ~\cite{vmgen}.
+
+\end{enumerate}
 
 \subsection{Input language} % talk about imp
 \label{sec:input_language}
+When you want to build a virtual machine interpreter you need to have an
+input language. Instead of creating our own programming language for this
+project we chose the programming language Imp. ~\cite{Pierce:SF1}
+
+"Imp is a simple imperative programming language which embodies a tiny core
+fragment of conventional mainstream languages such as C or Java". ~\cite{Pierce:SF1}
+
+\begin{verbatim}
+    Z := X;
+    Y := 1;
+    while Z != 0 do
+        Y := Y * Z;
+        Z := Z - 1;
+    end
+\end{verbatim}
+\textit{Example code in the Imp programming language} \\
+
+Not only is Imp simple but it is already fully defined and has many examples
+we can test agains.
+
+The book `IMP Simple Imperative Programs` by Benjamin C. Pierce
+~\cite{Pierce:SF1} describes the language in detail and provides for example
+BNF grammar definitions of the syntax which makes it easy understandable and
+provides a guideline when developing the scanner and parser of the interpreter.
+
+The language has no scope so all variables are global. This fact makes it easier
+for us since we do not need to keep track of scopes or environments and the
+variable lookup in our interpreter is just one single HashMap that holds all 
+global variables.
+
+Variables can be assigned without the need to give an explicit type since all
+the variables in Imp are numbers. Again this makes it very convinient for us to
+implement.
+
+\begin{verbatim}
+    a := 1;
+    b := a;
+\end{verbatim}
+\textit{Variable assignment in the Imp programming language} \\
+
+Imp defines while loops which are delimited by the `do` and `end` keyword and
+do not need any parentheses around the condition. Those particular circumstances
+makes it easy to parse.
+
+\begin{verbatim}
+    a := 0;
+    while a < 10 do
+        a := a + 1;
+    end
+\end{verbatim}
+\textit{While statement in the Imp programming language} \\
+
+Similar to while loops, if statements are also defined without any unnecessary
+parentheses and it is delimited with describing keywords like `then`, `else`
+and `end`.
+
+\begin{verbatim}
+    a := 0;
+    if a < 10 then
+        a := a + 1;
+    end
+\end{verbatim}
+\textit{If statement in the Imp programming language} \\
+
+For convinience and testing purposes we added our own keyword `print` to the
+language. It helps during development to get a better view into the execution
+of the interpreter.
+
+\begin{verbatim}
+    a := 0;
+    if a < 10 then
+        print a + 1;
+    else
+        print a - 1;
+    end
+\end{verbatim}
+\textit{Print statement in the Imp programming language} \\
+
+Imp does not include function calls or any of the commonly known features of
+todays high level languages such as classes, lambdas, structs or even strings
+and arrays.
 
 \clearpage
 \bibliographystyle{plain}
