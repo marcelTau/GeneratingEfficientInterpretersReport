@@ -11,6 +11,7 @@
     Supervisor: Dr. Michael Vollmer
 }
 \usepackage{natbib,hyperref}
+\usepackage{graphicx}
 \date{\today}
 \begin{document}
 \maketitle
@@ -169,10 +170,13 @@ We will explore techniques and approaches on how to build a vm interpreter in Ru
 use benchmarking to visualize results depending on applied optimizations.
 
 \section{Description of the problem}
+When it comes to the problem that we are trying to solve there are two main
+points. Efficiency and Automation.
+
 \subsection{Efficiency}
-In terms of efficiency at run time of a program nativ compiled machine code
-will always outperform the interpreted version. So why would we even care
-about writing efficient interpreters and not just use native code compilers.
+In terms of efficiency at run time, nativ compiled machine code will always
+outperform the interpreted version. So why would we even care about writing
+efficient interpreters and not just use native code compilers.
 
 One of the main reasons interpreters are preferred over compilers is that 
 native code compilers are more complex to develop and difficult to maintain.
@@ -183,8 +187,13 @@ generate native code for one target system while the virtual machine
 interpreter stays the same on every system. By that the interpreter is portable
 and the generated code does not depend on the underlaying machine.
 
+Summed up the first problem is that interpreters will never be as fast as
+native compiled machine code but by contributing to increase of efficiency we
+get all the benefits of using interpreters while minimizing the disadvantages
+to compilers.
+
 \subsection{Automation}
-Many programmers will come to the idea of implementing their own programming
+Many programmers will have the idea of implementing their own programming
 language at some point in their career. Most of them will have noticed that
 buidling an interpreter is a challenging task and requires a lot of work and
 a clear structure. In addition to that it shows that many parts of an vm
@@ -227,7 +236,7 @@ An extension to that is Rust's expressive type system and strict memory
 management rules which helps avoiding many kinds of errors that appear in 
 standard C programming.
 
-\subsection{Virtual Machine} % stack based, show bytecode, reason about bytecode in rust enum
+\subsection{Virtual Machine}
 The virtual machine is the part that exectues the byte code that was generated
 by the compiler.
 
@@ -593,6 +602,17 @@ Some common techniques are:
 
 \end{enumerate}
 
+\subsubsection{Replacing superinstructions in the byte code}
+\label{sec:replacing_superinstructions}
+To create a byte code that involves superinstructions we first need to generate
+the normal byte code.
+
+In a second iteration we go through the sequence of instructions and check
+if we can combine any of the instructions into a superinstruction.
+
+This step will need to iterate through all the instruction once and by that
+grow linear with the size of the byte code.
+
 \subsection{Input language} % talk about imp
 \label{sec:input_language}
 When you want to build a virtual machine interpreter you need to have an
@@ -673,16 +693,339 @@ of the interpreter.
 \end{verbatim}
 \textit{Print statement in the Imp programming language} \\
 
+Furthermore we have implemented the modulo operator and a `continue` statement,
+to manually continue to the next iteration of a loop. By doing that have more
+possibilities to create benchmark programs.
+
 Imp does not include function calls or any of the commonly known features of
 todays high level languages such as classes, lambdas, structs or even strings
 and arrays.
+
+\section{Results}
+
+\subsection{Benchmarks}
+\subsubsection{Setup}
+
+To create the benchmarks we have used a system with the following specs.
+
+\begin{enumerate}
+    \item \textbf{CPU}:\\
+        11th Gen Intel i7-11370H (8) @ 4.800GHz 
+    \item \textbf{Operating System}:\\
+        Fedora Linux 37 (Workstation Edition) x86\_64 
+\end{enumerate}
+
+The script `benchmark.py` executes the benchmarks and generates the
+visualization using matplotlib.
+
+To collect the benchmark timings and reduce the chance of outliers that can
+occure because of external reasons such as system load or memory availability
+the script executes each command 10 times and calculates the average.
+
+To toggle different superinstructions inside of the Rust code from the 
+outside we have used Cargo's `features` option.
+
+This shows how to write conditional code that will be turned on or off during
+compilation in Rust.
+
+\begin{verbatim}
+    enum ByteCode {
+        ...
+        #[cfg(feature = "PushAdd")]
+        PushAdd(usize),
+        #[cfg(feature = "AssignPushAdd")]
+        AssignPushAdd {
+            name: String,
+            value: usize,
+        },
+    }
+\end{verbatim}
+
+\subsubsection{Test Programs}
+To get the benchmark data we used multiple small programs that generate
+different bytecode. By that we can see which optimization give the most
+benefit for what kind of program.
+
+As test programs we used:
+\begin{enumerate}
+    \item \textbf{Factorial.imp}:\\
+    A simple program to calculate 10!.
+\begin{verbatim}
+    result := 1;
+    n := 10;
+    while n > 1 do
+        result := result * n;
+        n := n - 1;
+    end
+    print result;
+\end{verbatim}
+
+    \item \textbf{Fib\_70.imp}:\\
+    A program to calculate and print the first 70 fibonacci numbers.
+\begin{verbatim}
+    a := 0;
+    b := 1;
+    n := 70;
+
+    while n > 1 do
+        print a;
+        temp := a;
+        a := b;
+        b := temp + b;
+        n := n - 1;
+    end
+\end{verbatim}
+    \item \textbf{Gcd.imp}:\\
+    A program to calculate the greatest common divisor of two numbers.
+\begin{verbatim}
+    a := 234234;
+    b := 234;
+
+    while a != b do
+        if a > b then
+            a := a - b;
+        else
+            b := b - a;
+        end
+    end
+
+    print a;
+\end{verbatim}
+
+    \item \textbf{If.imp}:\\
+    A program that uses many if statements and assignments inside of a loop.
+
+\begin{verbatim}
+    i := 1;
+    a := 0;
+
+    while i < 1000 do
+        i := i + 1;
+        a := a + 1;
+        
+        if a < i then
+            a := 0;
+        end
+        if a < i then
+            a := 0;
+        end
+        if a < i then
+            a := 0;
+        end
+        if a < i then
+            a := 0;
+        end
+    end
+\end{verbatim}
+
+    \item \textbf{Increment\_loop.imp}:\\
+    A program that uses many assignments and addtions.
+\begin{verbatim}
+    a := 0;
+    b := 0;
+    c := 0;
+    d := 0;
+    e := 0;
+    f := 0;
+    g := 0;
+    i := 0;
+
+    while i < 1000 do
+        i := i + 1;
+        a := a + 1;
+        b := b + 1;
+        c := c + 1;
+        d := d + 1;
+        e := e + 1;
+        f := f + 1;
+        g := g + 1;
+    end
+
+    print i;
+\end{verbatim}
+
+    \item \textbf{Increment\_loop.imp}:\\
+    \label{item:inc_loop}
+    A program that calculates the sum of the first 1000 natural numbers.
+\begin{verbatim}
+    N := 1000;
+    Sum := 0;
+    i := 1;
+
+    while i <= N do
+        Sum := Sum + i;
+        i := i + 1;
+    end
+
+    print Sum;
+\end{verbatim}
+    \item \textbf{Fizz\_buzz.imp}:\\
+    A program that uses the modulo operator to calculate the famous fizzbuzz problem.
+\begin{verbatim}
+i := 0;
+
+while i < 1000 do
+    i := i + 1;
+    if i % 3 == 0 && i % 5 == 0 then
+        print 0;
+        continue;
+    end
+    if i % 3 == 0 then
+        print 1;
+        continue;
+    end
+    if i % 5 == 0 then
+        print 2;
+        continue;
+    end
+    print i;
+end
+\end{verbatim}
+\end{enumerate}
+
+Each of the programs generates a byte code that uses some instructions
+intensivly. By that we can see which superinstruction has the most influence on
+run time and also see the time the generation for the byte code using this
+superinstruction combination took.
+
+\subsubsection{Results}
+The following images show the performance analysis charts.
+
+The y-axis, calibrated in milliseconds, shows the time.
+
+On the x-axis we show the different files. Each enty has 3 values attached to it.
+
+\begin{enumerate}
+    \item \textbf{Generation time (blue)}:\\
+        The time it took to generate the byte code for the application.
+    \item \textbf{Interpreting time (orange)}:\\
+        The time it took to interpret the byte code.
+    \item \textbf{Interpreting time (threaded) (green)}:\\
+        The time it took to interpret the byte code with the computed goto (or
+        threaded code) optimization enabled.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{../BenchmarkImages/No_Optimizations.png}
+    \caption{\textit{Benchmark results without any optimizations enabled}}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{../BenchmarkImages/PushAdd.png}
+    \caption{Benchmark results with the superinstruction PushAdd enabled}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{../BenchmarkImages/AssignPushAdd_PushAdd.png}
+    \caption{Benchmark results with the superinstructions PushAdd and AssignPushAdd enabled}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\textwidth]{../BenchmarkImages/AssignPushAdd_PushAdd_PushAssign.png}
+    \caption{Benchmark results with the superinstructions PushAdd, AssignPushAdd and PushAssign enabled}
+\end{figure}
+
+Looking at the first diagram with no optimizations enabled we get the base
+line. Now we can compare it with some of the superinstruction optimizations.
+
+First of all, we can see that the threaded code optimization causes a slow down
+of approximatly 300\% compared to the non optimized version. But why is this?
+We have already explained how we have implemented the computed goto
+optimization for that see Section \ref{it:goto}.
+
+There you can see that we used a hash map to store the mapping of byte code
+instruction to the function that implements it. The key is a usize. This usize
+is the result of a call to the std::mem::discriminant function. It returns the
+index of a given variant in an enum.
+
+Since Rust does not by default allow an enum with fields that hold data to be
+the key of a hash map we had to use this approach.
+
+After every instruction we need to call the discriminant function to get the
+index of the next byte code instruction. This overhead is most likely the main
+reason for the slow down.
+
+When we are comparing Figure 2 (PushAdd) and Figure 1 (No optimizations) we can
+see that the implementation of the superinstruction PushAdd which combines the
+PUSH and the ADD instruction resulted in slight improvements in the run time.
+
+The biggest performance benefit was gained in the increment\_loop.imp program
+\ref{item:inc_loop}. The generated byte code for this program uses the
+combination of pushing the value 1 to the stack and adding it to a variable in
+a loop. Combining those two instructions we can gain almost a 20\% speed
+improvement in the threaded code and a 6\% speed improvement in non-threaded
+code.
+
+The following shows the generated bytecode for the increment\_loop.imp program
+without using any superinstructions.
+\begin{verbatim}
+inside the loop...
+
+    Var("a")
+    Push(1)
+    Add
+    Assign("a")
+    Var("b")
+    Push(1)
+    Add
+    Assign("b")
+    ...
+\end{verbatim}
+
+This shows the generated bytecode using the PushAdd instruction.
+\begin{verbatim}
+inside the loop...
+
+    Var("a")
+    PushAdd(1)
+    Assign("a")
+    Var("b")
+    PushAdd(1)
+    Assign("b")
+    ...
+\end{verbatim}
+
+As you can see we saved one instruction per incremented variable per
+iteration in the loop. 
+
+To get an even bigger performance increase on the increment\_loop.imp program
+we can enable two superinstructions. As we can see in Figure 3 (PushAdd,
+AssignPushAdd) the run time was decreased to only 32.7 ms in threaded code.
+This is an improvement in speed of nearly 30\% in threaded code and 10\% in
+non-threaded code.
+
+When we combine the previously build PushAdd superinstruction with the ASSIGN
+instruction we can reduce the number of instructions even more to just two
+instructions per incremented variable.
+
+\begin{verbatim}
+inside the loop...
+
+    Var("a")
+    AssignPushAdd { name: "a", value: 1 }
+    Var("b")
+    AssignPushAdd { name: "b", value: 1 }
+    ...
+\end{verbatim}
+
+Since none of the test programs results in a generated bytecode that exceeds
+100 instructions the differences at generating are minimal but in some cases
+still notable.
+
+When we compare the generation time of fizz\_buzz.imp in Figure 1 and Figure 4
+we can see that the time it took to generate the byte code increased by 0.2ms.
+This increase might seem very little and irrelevant but the generated byte code
+only consists of 57 instructions. If this would be a big program resulting in
+thousands of instructions the time of code generation would noticable increase
+as the time needed to create superinstructions grows linear to the byte code
+(see Section \ref{sec:replacing_superinstructions}).
+
 
 \clearpage
 \bibliographystyle{plain}
 \bibliography{dissertation}
 \end{document}
-
-%what to do?
-%write test programs, find superinstructions, do benchmarks, mandelbrot
-%format of dis
-
