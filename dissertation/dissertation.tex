@@ -214,6 +214,133 @@ interpreter. It will already use efficient implementation techniques and come
 with built in optimizations. It also provides easy extensibility for the user
 without needing to change any source code.
 
+\section{Literature review}
+When talking about virual machines we consider only the 2 main paradigms in
+this paper, namely stack based and register based virtual machines.
+
+While virtual machines are great to use in combination with interpreters
+each architecture has it's advantages and disandvantages.
+
+Stack based virtual machines use a stack to manage state. The stack pointer,
+often abbreviated with sp, is used to keep track of the top of the stack.
+Instructions like PUSH and POP can manipulate the stack by adding or removing
+values from it while incrementing or decrementing the stack pointer.
+
+The main advantage of a stack-based virtual machine lays in it simplicity.
+The implementation is straight forward, the instructions are kept simple
+and optimiztions are easy to implement.
+
+
+Register based virtual machines work on a different principle. They use a set of
+virtual registers which are designed to mimic hardware registers as a place to
+store data. Instructions such as LOAD or STORE can modify the registers.
+
+The instructions used in register based virtual machines are larger since they
+need to encode the operands. As an example the STORE instrucion needs to know 
+the value to store and the register where it should store the value.
+
+The execution cycle involve 3 steps. Fetching, decoding and executing. First
+the machine needs to get the instruction from memory. Then it needs to decode
+the instruction to know which operation to perform and which registers to use.
+This decoding step can add a small overhead to the machine but since it usually
+involves just simple logical operations it is still very fast. In the last step
+the operation is executed and the registers are modified accordingly.
+
+Since all operations are performed on registers, the need to push and pop from
+the stack is eliminated which results in efficient data access.
+
+Regarding the effort it takes to create an efficient register based virtual
+machine interpreter M. Anton Ertl says:
+
+\begin{quotation}
+From the viewof the compiler writer, many languages can be easily compiled for
+stack machine code. To achieve better performance with a register machine, the
+compiler must perform optimizations, e.g., global reg- ister allocation (which
+needs data flow analysis). This would eliminate one ofthe advantages ofusing an
+interpreter, namely simplicity. ~\cite{stack_caching_for_interpreters}
+\end{quotation}
+
+A good example to compare stack based virtual machines with register based
+machines on a real world project is Lua. Lua runs programs on a virtual machine
+interpreter. It compiles the code into instructions for a virtual machine.
+
+When Lua was first created in 1993 it used a stack based virtual machine. 10
+years later in 2003 with the release of Lua 5.0 they have changed their
+approach and now use a register based vm. ~\cite{lua_implementation}
+
+To understand how Lua profited from the register based virtual machine we first
+need to understand how Lua works.
+
+Lua creates a prototype for each function in the code. The prototype contains an
+array with all the instructions to execute this function and an array of all the
+Lua values and constants used. ~\cite{lua_implementation}
+
+Upon entering a function, an activation record is preallocated on the stack.
+This record holds all funcion registers, where local variables are stored.
+Resulting in efficient variable access. ~\cite{lua_implementation}
+
+In addition to that register based instructions do not need any PUSH or POP
+instruction which are expensive in Lua because of the way Lua represents
+values.
+
+Looking at the disadvantages of register based vm's in terms of generated code
+size and single instruction size in Lua we can see that they are not too bad.
+
+Lua's stack based virtual machine had an instruction set of 49 instructions
+where the register based approach only needed 35. The size of a single
+instruction increased from 2 bytes to 4 bytes with the change of the virutal
+machine but this relativises itself due to less generated instructions.
+
+Here an example
+
+\begin{figure}[ht]
+    \begin{verbatim}
+        local a,t,i
+        a = a+i
+        a = a+1
+        a = t[i]
+    \end{verbatim}
+    \caption{\textit{Example Lua code from ~\cite{lua_implementation}}}
+    \label{fig:lua_code}
+\end{figure}
+
+The generated instructions vary a lot from Lua 4.0 to Lua 5.0.
+
+\begin{figure}[ht]
+    \begin{verbatim}
+        PUSHNIL     3
+        GETLOCAL    0
+        GETLOCAL    2
+        ADD
+        SETLOCAL    0
+        GETLOCAL    0
+        ADDI        1
+        SETLOCAL    0
+        GETLOCAL    1
+        GETINDEXED  2
+        SETLOCAL    0
+    \end{verbatim}
+    \caption{\textit{Generated instructions for Lua 4.0 (stack based vm) from ~\cite{lua_implementation}}}
+    \label{fig:lua_generated4}
+\end{figure}
+
+
+\begin{figure}[ht]
+    \begin{verbatim}
+        LOADNIL     0 2 0
+        ADD         0 0 2
+        ADD         0 0 250 ;1
+        GETTABLE    0 1 2
+    \end{verbatim}
+    \caption{\textit{Generated instructions for Lua 5.0 (register based vm) from ~\cite{lua_implementation}}}
+    \label{fig:lua_generated5}
+\end{figure}
+
+Comparing Figure \ref{fig:lua_generated4} and Figure \ref{fig:lua_generated5}
+we can see even though each instruction in Figure \ref{fig:lua_generated5} has 3 operands,
+resulting in larger size, it just generated a total of 4 instructions compared
+to 11 in Figure \ref{fig:lua_generated4}
+
 \section{Description of work}
 The goal of this project is to build an virtual machine interpreter and 
 explore the implementation of such in the Rust programming language.
@@ -289,6 +416,7 @@ add      [3]
 \end{verbatim}
 
 \subsubsection{Byte code}
+\label{sec:byte_code}
 To define a byte code we have decided to use Rust's powerful enums. They are
 not only able to perfectly represent each instruction with it's parameters but
 also helps during development due to Rust's powerful type system.
@@ -448,6 +576,7 @@ ways to optimize code.
 Some common techniques are:
 \begin{enumerate}
     \item \textbf{Dead Code Elimination}:\\
+    \label{item:dead_code_elimination}
         Remove parts of the code that are never to be used.
 
         Consider the follwing C code. In this case the variable `c` is never
@@ -1024,8 +1153,44 @@ thousands of instructions the time of code generation would noticable increase
 as the time needed to create superinstructions grows linear to the byte code
 (see Section \ref{sec:replacing_superinstructions}).
 
+\section{Summary}
+%TODO
+
+\section{Future Work}
+The last section of this paper will focus on ways to improve this project
+in the future.
+
+Looking at the title of this paper and compare it to the write up we can see
+that we are missing an essential part. The part of automation.
+
+The idea behind the automation part is to give the user of this program
+the opportunity to provide a configuration file which can define all 
+sorts of information that then will be used for the generation of the
+virutal machine interpreter.
+
+Some of the information can be custom superinstructions for example. The idea
+is to let the user define their own superinstructions and write them down in a
+syntax we can understand to automatically implement them during generation.
+
+Other ways to improve this project in the future is to think about a different
+way to model the byte code inside of the Rust code. We have already described
+why the approach we chose is not the most optimal way in Section
+\ref{sec:byte_code}.
+
+To further improve the efficiency we can implement more optimization techniques
+in the future. To name a few optimizations that should be pretty easy to
+implement at this point are for example `dead code elimination` as described in
+Section \ref{item:dead_code_elimination}.
+
+Another thing that can be done in the future is to add more superinstructions.
+For that it would be useful to create more benchmark examples and see what
+instructions are used frequently to create superinstructions out of them.
 
 \clearpage
 \bibliographystyle{plain}
 \bibliography{dissertation}
 \end{document}
+
+
+
+
