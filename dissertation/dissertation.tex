@@ -16,7 +16,7 @@
 \begin{document}
 \maketitle
 \clearpage
-
+\tableofcontents
 \section{Introduction}
 
 %1. Introduction: objectives, intro to contents (overview)
@@ -60,20 +60,19 @@
 %- whats good about interpreters
 %*/
 
-In the modern world we live in today, everything is controlled by code.
-Everyone of us is using technology controlled by code, if they want it or not.
-But not many people know how the code that programmers around the world write
-gets executed on their device.
-
+In today's modern world, everything operates through code. We all use
+technology that's powered by code, whether we realize it or not. But most
+people, and even a lot of programmers, have no understanding about how the code
+is executed on their devices.
 
 \subsection{What is an interpreter?}
 In general there are two ways to execute code. Both approaches include the
-process of translating the human readable code into something that the computer
-can understand. 
+process of translating the human readable code into a more abstract form that
+the computer can understand. 
 
-During the first technique the code is compiled (translated) into machine code.
-The end product is a stand alone program that can be executed at any time on the
-architecture it was compiled for.
+The first technique describes the process of code being compiled (translated)
+into machine code. The end product is a stand alone program that can be
+executed at any time on the architecture it was compiled for.
 
 The second approach is called 'interpreting'. There are two primary methods
 to how an interpreter works. One approach is called a tree-walk interpreter.
@@ -114,7 +113,7 @@ The bytecode or intermediate representation used in a vm interpreter is usually
 designed to be very similar to a real machine. ~\cite{vmgen}
 
 Some real world examples of virtual machine interpreters are for example the
-JVM (Java Virtual Machine) or the PVM (Python Virtual Machine). (TODO: link to them???)
+JVM (Java Virtual Machine) or the PVM (Python Virtual Machine).
 
 
 \subsection{Virtual machine}
@@ -142,32 +141,40 @@ This simplicity is the reason we have to decided to rely on a stack based virtua
 this paper.
 
 \subsection{Optimizations}
-When you are running your Java program the compiler does not just generate bytecode for
-the JVM from your written code. The compiler will try it's best to optimize as much as possible
-to ensure that the execution of the produced bytecode will be as fast as possible.
-This optimization part of the compiler is by far one of the most crucial tasks of a compiler.
+When executing code written in an language that uses a virtual machine
+interpreter, in general, the compiler does not just generate bytecode for the
+VM but also tries to optimize as much as possible to ensure that the execution
+of the produced bytecode will be as fast as possible. 
+This optimization part of the compiler is by far one of the most crucial tasks
+of a compiler.
 
 During the development of this project we have looked at a number of different
 optimizations. Some of the optimizations that we have implemented for the
-project are threaded code and peephole optimizations (superinstructions) (TODO:
-SHOULD I EXPLAIN THEM HERE)
-
+project are threaded code and peephole optimizations (superinstructions).
 
 \subsection{Automation}
 Writing an interpreter for a programming language can be a tedious and
 challenging task on it's own. Thinking about how to keep the code efficient and
 additionally implement optimizations makes it even harder.
 
-One solution to this is automating the process of writing a virutal machine interpreter
-by providing a configuration file.
+One solution to this is automating the process of writing a virutal machine
+interpreter.
+
+This would prevent many error sources such as human errors and lead to enhanced
+code quality. By eliminating the manual writing work, the programmer can focus
+on higher-level aspects of the project.
+
+Due to quicker development cycles the interpreter can be fine-tuned wihtout
+needing to change the code and be more efficient.
 
 \subsection{Objectives}
 This paper will use the Rust programming language to build each part of a virtual machine 
 interpreter with the optimal goal of automating the generation of it self depending on
-a given configuration of a user.
+a given configuration.
 
-We will explore techniques and approaches on how to build a vm interpreter in Rust and
-use benchmarking to visualize results depending on applied optimizations.
+We will explore techniques and approaches on how to build a vm interpreter in
+Rust and use benchmarking to visualize results highlighting effects of
+optimizations.
 
 \section{Description of the problem}
 When it comes to the problem that we are trying to solve there are two main
@@ -184,13 +191,13 @@ native code compilers are more complex to develop and difficult to maintain.
 
 Another big advantage of the interpreting approach is that compilers can only
 generate native code for one target system while the virtual machine
-interpreter stays the same on every system. By that the interpreter is portable
-and the generated code does not depend on the underlaying machine.
+interpreter stays consistent on every system. By that the interpreter is
+portable and the generated code does not depend on the underlaying machine.
 
-Summed up the first problem is that interpreters will never be as fast as
-native compiled machine code but by contributing to increase of efficiency we
-get all the benefits of using interpreters while minimizing the disadvantages
-to compilers.
+Summed up, the first problem is that interpreters will never be as fast as
+native compiled machine code but by contributing to the increase of efficiency
+we get all the benefits of using interpreters while minimizing the
+disadvantages to compilers.
 
 \subsection{Automation}
 Many programmers will have the idea of implementing their own programming
@@ -203,18 +210,124 @@ VM instructions will be similar for most of the instructions. ~\cite{vmgen}
 But what happens when the interpreter does not give the expected outcome in
 terms of efficiency. It results in manual rewriting of a codebase just to
 change the implementation of some part of the vm interpreter to see if the
-performance increases.
-Rewriting the whole interpreter to test if the performance is better using
-a different development approach is not only time consuming but also error 
-prone.
+performance increases. Rewriting the whole interpreter to test if the
+performance is better using a different development approach is not only time
+consuming but also error prone.
 
-One solution to this problem is automation. The user should be able to provide
-a configuration file and based on that we will generate an efficient vm 
+One solution to this problem is automation. The developer should be able to
+provide a configuration file and based on that we will generate an efficient vm
 interpreter. It will already use efficient implementation techniques and come
 with built in optimizations. It also provides easy extensibility for the user
 without needing to change any source code.
 
 \section{Literature review}
+This literature review compiles a selection of influential papers that explore
+various aspects of efficient interpreter design or the generation of them. 
+
+By analyzing these papers, we aim to highlight different appraoches and
+concepts used to develop efficient interpreters and analyze them regarding
+complexity.
+
+We'll cover the choice of programming language, different ways of generated
+output, multiple ways the interpreter can be implemented and virtual machines.
+
+\subsection{Programming Language}
+Most of the code written, targeting the problem of efficent interpreters or
+compilers is either written in C or directly in assembly language.
+
+But why are developers using languages such as C when it is known to be error
+prone or even assembly which is known to be even more complex and hard to
+maintain.
+
+The reason for this is abstraction. Languages such as Python or Java are so
+easy to write because the langauge itself provides many layers of abstraction
+from what is actually hapening on the machine level. This makes it easier for
+the programmer to write safe code. 
+
+The downside of this abstraction is that it limits the contol the programmer
+has over the system.
+
+In compiler development there are many situations where it is crucial for the
+programmer to be able to use little tricks on the lowest layers of the system
+to reach a maximum performance gain.
+
+In the paper "Optimizing an ANSI C Interpreter with Superoperators" the author
+Todd A. illustrates the superiority of assembly by writing:
+
+\begin{quotation}
+"The interpreter is implemented in assembly language.
+Assembly language enables important optimizations like keeping the evaluation
+stack pointer and interpreter program counter in hardware registers." ~\cite{superoperators}
+\end{quotation}
+
+Another example of an optimization that is complicated to implement in high
+level languages such as Python but easy to implement in assembly and in some
+versions of C is the threaded code or computed goto optimization.
+
+As a limitation to C the authors of 'vmgen - A Generator of Efficient Virtual
+Machine Interpreters' state:
+\begin{quotation} 
+"This technique cannot be implemented in ANSI C, but it can be implemented in
+GNU C using the labels-as-values extension." ~\cite{vmgen} 
+\end{quotation}
+
+\subsection{Output Language}
+The frontend of the interpreter, the compiler, generates output. What kind
+of output it is depends on the use case.
+
+For example, for virtual machine interpeters the compiler outputs byte code that
+can be run by the virutal machine. This is platform independent but comes with
+the cost of reduced performance.
+
+A native-code compiler outputs machine code for a specific architecture. This is faster
+than interpreting but is limited when it comes to portability.
+
+Another approach is to compile to C. With that we have portability and gain all the 
+optimization that were added to C compiler in the last 30 years. Some disadvantages
+are stated by the authors of 'The Structure and Performance of Efficient Interpreters':
+
+\begin{quotation} 
+"Why not write a compiler to C? While this method addresses the
+ease-of-implementation and retargeting issues, it is not acceptable when
+interactivity, quick turnarounds, or non-C features (e.g., run-time
+code-generation or guaranteed tail-call optimization) are required."
+~\cite{structure_and_performance}
+\end{quotation} 
+
+\subsection{Interpreter approaches}
+There are several ways to implement an interpreter. We are looking
+at the 2 most widely used practices. 
+Both of them start in the parsing phase by creating an Abstract Syntax
+Tree (AST). The tree consists of nodes each representing a construct in
+the programming language, for example a statement or an expression.
+
+The tree walk interpreter is the simplest way to create an interpreter when the
+AST is already built. As the name suggests it traverses the tree and when it
+encounters a node it executes the corresponding operation.
+
+Tree walk interpreters are easy from the viewing point of the implementor. The
+tree closely mirrors the structure of the source code and by that makes errors
+easier to debug in the tree structure.
+
+This simplicity comes with the cost of reduced performance. One reason why a
+tree walk interpreter is slower than a bytecode interpreter is that as they
+traverse the tree they perform execution for each node wich can result in
+redundant operations. Furthermore it is hard to use optimizations, since
+it directly executes the nodes.
+
+Bytecode interpreters are traversing the AST and building up a sequence of 
+instructions which then will be executed. 
+
+The step of creating an intermediate reprentation (IR) opens up a new way to
+operate on the code. Now that we work with a series of instructions instead of
+a tree of nodes we can perform all sorts of optimizations on it.
+
+This makes the bytecode interpreter more efficient. It also makes it more
+complex since now we have to generate bytecode, implement optimizations
+and execute the bytecode instructions. Debugging is also more complex since
+the generated instructions do not mirror the code structure anymore.
+
+\subsection{Virtual Machines}
 When talking about virual machines we consider only the 2 main paradigms in
 this paper, namely stack based and register based virtual machines.
 
@@ -229,7 +342,6 @@ values from it while incrementing or decrementing the stack pointer.
 The main advantage of a stack-based virtual machine lays in it simplicity.
 The implementation is straight forward, the instructions are kept simple
 and optimiztions are easy to implement.
-
 
 Register based virtual machines work on a different principle. They use a set of
 virtual registers which are designed to mimic hardware registers as a place to
@@ -253,16 +365,17 @@ Regarding the effort it takes to create an efficient register based virtual
 machine interpreter M. Anton Ertl says:
 
 \begin{quotation}
-From the viewof the compiler writer, many languages can be easily compiled for
+"From the view of the compiler writer, many languages can be easily compiled for
 stack machine code. To achieve better performance with a register machine, the
-compiler must perform optimizations, e.g., global reg- ister allocation (which
-needs data flow analysis). This would eliminate one ofthe advantages ofusing an
-interpreter, namely simplicity. ~\cite{stack_caching_for_interpreters}
+compiler must perform optimizations, e.g., global register allocation (which
+needs data flow analysis). This would eliminate one of the advantages of using an
+interpreter, namely simplicity." ~\cite{stack_caching_for_interpreters}
 \end{quotation}
 
 A good example to compare stack based virtual machines with register based
-machines on a real world project is Lua. Lua runs programs on a virtual machine
-interpreter. It compiles the code into instructions for a virtual machine.
+machines on a real world project is Lua. Lua runs it's programs on a virtual
+machine interpreter and therefore compiles the code into instructions for a
+virtual machine.
 
 When Lua was first created in 1993 it used a stack based virtual machine. 10
 years later in 2003 with the release of Lua 5.0 they have changed their
@@ -289,9 +402,10 @@ size and single instruction size in Lua we can see that they are not too bad.
 Lua's stack based virtual machine had an instruction set of 49 instructions
 where the register based approach only needed 35. The size of a single
 instruction increased from 2 bytes to 4 bytes with the change of the virutal
-machine but this relativises itself due to less generated instructions.
+machine architecture but this relativises itself due to less generated
+instructions.
 
-Here an example
+Here an example:
 
 \begin{figure}[ht]
     \begin{verbatim}
@@ -339,10 +453,10 @@ The generated instructions vary a lot from Lua 4.0 to Lua 5.0.
 Comparing Figure \ref{fig:lua_generated4} and Figure \ref{fig:lua_generated5}
 we can see even though each instruction in Figure \ref{fig:lua_generated5} has 3 operands,
 resulting in larger size, it just generated a total of 4 instructions compared
-to 11 in Figure \ref{fig:lua_generated4}
+to 11 in Figure \ref{fig:lua_generated4}.
 
 \section{Description of work}
-The goal of this project is to build an virtual machine interpreter and 
+The goal of this project is to build a virtual machine interpreter and 
 explore the implementation of such in the Rust programming language.
 
 \subsection{Tools used}
@@ -352,10 +466,11 @@ Python to visualize any benchmarking results. The input language of the
 interpreter is the Imp programming language (see section
 \ref{sec:input_language}). ~\cite{Pierce:SF1}
 
-But why did we use Rust and not the C programming language like most other
-systems do?
+%TODO maybe this in approaches ??
+But why did we use Rust and not the C programming language or assembly like
+most other systems do?
 One reason for that is that as stated before most of the already existing
-solutions are written in C and we wanted to explore something new.
+solutions are written in C and assembly and we wanted to explore something new.
 Another reason why we decided to use Rust is that we were looking for a low level
 systems programming language that allows us to work as efficient as possible
 while still offering high level features like match statements and iterators.
@@ -364,12 +479,12 @@ management rules which helps avoiding many kinds of errors that appear in
 standard C programming.
 
 \subsection{Virtual Machine}
-The virtual machine is the part that exectues the byte code that was generated
-by the compiler.
+The virtual machine, the backend of the vm interpreter, is the part that
+exectues the byte code that was generated by the compiler.
 
 \subsubsection{Implementation}
 The virtual machine we have built is very basic. It contains a representation
-of the stack and a HashMap to hold the variables.
+of the stack and a HashMap to hold the global variables.
 
 \begin{verbatim}
 pub struct ByteCodeInterpreter {
@@ -396,13 +511,12 @@ pub struct ByteCodeInterpreterThreaded {
 \end{verbatim}
 \textit{ByteCodeInterpreterThreaded struct definition} \\
 
-
 \subsubsection{Stack}
 The virtual machine we built is stack based. This means there are no registers
-and everything happens on the stack.
+and all the data is handled on the stack.
 
-When you add two numbers there will be a `push` instruction for both values
-and an add instruction which will pop the last two values from the stack,
+When you add two numbers there will be a PUSH instruction for both values
+and an ADD instruction which will pop the last two values from the stack,
 adds them together and pushes the result back on the stack.
 
 \begin{verbatim}
@@ -417,6 +531,7 @@ add      [3]
 
 \subsubsection{Byte code}
 \label{sec:byte_code}
+
 To define a byte code we have decided to use Rust's powerful enums. They are
 not only able to perfectly represent each instruction with it's parameters but
 also helps during development due to Rust's powerful type system.
@@ -466,10 +581,9 @@ A string in Rust contains:
 
     adds up to 32 bits.
 \end{verbatim}
-
-This decision might be good for developing since the Rust compiler will warn 
-if you for example forget a variant in a match statement but it is not really
-efficient.
+This decision might be good for developing since the Rust compiler will prevent
+you from making mistakes such as forgetting to check for a variant in a match
+statement but is not really efficient.
 
 \subsection{Interpreter}
 The interpreter consists of a scanner and a parser. We have decided to
@@ -516,8 +630,8 @@ pub enum TokenType {
 \textit{TokenType definition}
 
 \subsubsection{Parser}
-The parser takes the stream of tokens as input and builds up an abstract syntax
-tree. In the Rust code it is represented as a `Vec<Rc<Stmt>>`.
+The parser takes the stream of tokens as input and builds up an Abstract Syntax
+Tree (AST). In the Rust code it is represented as a `Vec<Rc<Stmt>>`.
 
 \begin{verbatim}
 As an example the code `x := 10;` will get tokenized into 
@@ -534,7 +648,6 @@ ExpressionStmt {
 }
 \end{verbatim}
 
-
 \subsubsection{Interpreter (testing)}
 To be able to test the scanner and parser before writing the bytecode generator
 we build a small interpreter that just runs the code.
@@ -542,8 +655,8 @@ we build a small interpreter that just runs the code.
 It uses the visitor pattern to traverse the abstract syntax tree generated by
 the parser and executes the code immediatly.
 
-To use the visitor pattern approach we implemented a statement visitor and an
-expression visitor.
+To use the visitor pattern approach we have implemented a statement visitor and
+an expression visitor.
 
 \begin{verbatim}
 pub trait StmtVisitor<T> {
@@ -569,9 +682,10 @@ pub struct IfStmt {
 \textit{Structure holding data for an if statement}
 
 
-\subsection{Optimizations} % explaination of the optimizations
-Optimizaions play a critical role in the field of compiler design. There are many
-ways to optimize code.
+\subsection{Optimizations}
+Optimizaions play a critical role in the field of compiler design. From the
+endless list of optimizations we chose a couple ones to dive into detail
+about and use in the vm interpreter.
 
 Some common techniques are:
 \begin{enumerate}
@@ -580,7 +694,7 @@ Some common techniques are:
         Remove parts of the code that are never to be used.
 
         Consider the follwing C code. In this case the variable `c` is never
-        used so the statement `int c = 3;` does not need to be compiled
+        used. So the statement `int c = 3;` does not need to be compiled
         \begin{verbatim}
         int main() {
             int a = 1;
@@ -653,7 +767,7 @@ Some common techniques are:
     \item \textbf{Computed goto}:\\
     \label{it:goto}
         When executing the bytecode inside of a virtual machine interpreter for
-        example you will usually find a big switch statement inspecting the
+        example, you will usually find a big switch statement inspecting the
         current instruction and executing it. In our case, since we used Rust
         we have a big match statement like this.
 
@@ -704,9 +818,9 @@ Some common techniques are:
         Then each of the functions (Self::op\_push, Self::op\_add, ...) will finish
         with a call to a `next()` function.
 
-        This next() function will increment the program counter (the index of
-        where we are in the byte code) and call the function which was mapped
-        to the next instruction in the HashMap.
+        This next() function will increment the program counter (the current
+        position in the byte code) and call the function which was mapped to
+        the next instruction in the HashMap.
 
         In our case in Rust the next function looks like the following.
 
@@ -748,8 +862,10 @@ When you want to build a virtual machine interpreter you need to have an
 input language. Instead of creating our own programming language for this
 project we chose the programming language Imp. ~\cite{Pierce:SF1}
 
+\begin{quotation}
 "Imp is a simple imperative programming language which embodies a tiny core
 fragment of conventional mainstream languages such as C or Java". ~\cite{Pierce:SF1}
+\end{quotation}
 
 \begin{verbatim}
     Z := X;
@@ -765,14 +881,15 @@ Not only is Imp simple but it is already fully defined and has many examples
 we can test agains.
 
 The book `IMP Simple Imperative Programs` by Benjamin C. Pierce
-~\cite{Pierce:SF1} describes the language in detail and provides for example
-BNF grammar definitions of the syntax which makes it easy understandable and
-provides a guideline when developing the scanner and parser of the interpreter.
+~\cite{Pierce:SF1} describes the language in detail and provides additional
+information such as BNF grammar definitions of the syntax which makes it easy
+to understand and provides a guideline when developing the scanner and parser
+of the interpreter.
 
-The language has no scope so all variables are global. This fact makes it easier
-for us since we do not need to keep track of scopes or environments and the
-variable lookup in our interpreter is just one single HashMap that holds all 
-global variables.
+The language has no local scope resulting in all variables being global. This
+fact makes it easier for us since we do not need to keep track of scopes or
+environments and the variable lookup in our interpreter is just one single
+HashMap that holds all global variables.
 
 Variables can be assigned without the need to give an explicit type since all
 the variables in Imp are numbers. Again this makes it very convinient for us to
@@ -823,8 +940,8 @@ of the interpreter.
 \textit{Print statement in the Imp programming language} \\
 
 Furthermore we have implemented the modulo operator and a `continue` statement,
-to manually continue to the next iteration of a loop. By doing that have more
-possibilities to create benchmark programs.
+to manually continue to the next iteration of a loop. By doing that, we have
+more possibilities to create benchmark programs.
 
 Imp does not include function calls or any of the commonly known features of
 todays high level languages such as classes, lambdas, structs or even strings
@@ -842,20 +959,24 @@ To create the benchmarks we have used a system with the following specs.
         11th Gen Intel i7-11370H (8) @ 4.800GHz 
     \item \textbf{Operating System}:\\
         Fedora Linux 37 (Workstation Edition) x86\_64 
+    \item \textbf{Rust Compiler}:\\
+        cargo 1.66.0
+        rustc 1.66.0
 \end{enumerate}
 
-The script `benchmark.py` executes the benchmarks and generates the
-visualization using matplotlib.
+The script `benchmark.py` runs the program with every file in the
+`./benchmarks` directory as an input. It then generates visualization using
+matplotlib.
 
-To collect the benchmark timings and reduce the chance of outliers that can
-occure because of external reasons such as system load or memory availability
+To collect the benchmark timings and reduce the chance of outliers, that can
+occure because of external reasons such as system load or memory availability,
 the script executes each command 10 times and calculates the average.
 
 To toggle different superinstructions inside of the Rust code from the 
 outside we have used Cargo's `features` option.
 
-This shows how to write conditional code that will be turned on or off during
-compilation in Rust.
+The following code shows how to write conditional code that will be turned on
+or off during compilation in Rust.
 
 \begin{verbatim}
     enum ByteCode {
@@ -872,7 +993,7 @@ compilation in Rust.
 
 \subsubsection{Test Programs}
 To get the benchmark data we used multiple small programs that generate
-different bytecode. By that we can see which optimization give the most
+different byte code. By that we can see which optimization give the most
 benefit for what kind of program.
 
 As test programs we used:
@@ -973,7 +1094,7 @@ As test programs we used:
     print i;
 \end{verbatim}
 
-    \item \textbf{Increment\_loop.imp}:\\
+    \item \textbf{Sum.imp}:\\
     \label{item:inc_loop}
     A program that calculates the sum of the first 1000 natural numbers.
 \begin{verbatim}
@@ -1012,7 +1133,7 @@ end
 \end{verbatim}
 \end{enumerate}
 
-Each of the programs generates a byte code that uses some instructions
+Each of the programs will generate a byte code that uses some instructions
 intensivly. By that we can see which superinstruction has the most influence on
 run time and also see the time the generation for the byte code using this
 superinstruction combination took.
@@ -1037,25 +1158,29 @@ On the x-axis we show the different files. Each enty has 3 values attached to it
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\textwidth]{../BenchmarkImages/No_Optimizations.png}
-    \caption{\textit{Benchmark results without any optimizations enabled}}
+    \caption{Benchmark results without any optimizations enabled}
+    \label{fig:no_op}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\textwidth]{../BenchmarkImages/PushAdd.png}
     \caption{Benchmark results with the superinstruction PushAdd enabled}
+    \label{fig:push_add}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\textwidth]{../BenchmarkImages/AssignPushAdd_PushAdd.png}
     \caption{Benchmark results with the superinstructions PushAdd and AssignPushAdd enabled}
+    \label{fig:push_add_apa}
 \end{figure}
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\textwidth]{../BenchmarkImages/AssignPushAdd_PushAdd_PushAssign.png}
     \caption{Benchmark results with the superinstructions PushAdd, AssignPushAdd and PushAssign enabled}
+    \label{fig:all_op}
 \end{figure}
 
 Looking at the first diagram with no optimizations enabled we get the base
@@ -1078,9 +1203,10 @@ After every instruction we need to call the discriminant function to get the
 index of the next byte code instruction. This overhead is most likely the main
 reason for the slow down.
 
-When we are comparing Figure 2 (PushAdd) and Figure 1 (No optimizations) we can
-see that the implementation of the superinstruction PushAdd which combines the
-PUSH and the ADD instruction resulted in slight improvements in the run time.
+When we are comparing Figure \ref{fig:push_add} (PushAdd) and Figure
+\ref{fig:no_op} (No optimizations) we can see that the implementation of the
+superinstruction PushAdd which combines the PUSH and the ADD instruction
+resulted in slight improvements in the run time.
 
 The biggest performance benefit was gained in the increment\_loop.imp program
 \ref{item:inc_loop}. The generated byte code for this program uses the
@@ -1122,10 +1248,10 @@ As you can see we saved one instruction per incremented variable per
 iteration in the loop. 
 
 To get an even bigger performance increase on the increment\_loop.imp program
-we can enable two superinstructions. As we can see in Figure 3 (PushAdd,
-AssignPushAdd) the run time was decreased to only 32.7 ms in threaded code.
-This is an improvement in speed of nearly 30\% in threaded code and 10\% in
-non-threaded code.
+we can enable two superinstructions. As we can see in Figure
+\ref{fig:push_add_apa} (PushAdd, AssignPushAdd) the run time was decreased to
+only 32.7 ms in threaded code. This is an improvement in speed of nearly 30\%
+in threaded code and 10\% in non-threaded code.
 
 When we combine the previously build PushAdd superinstruction with the ASSIGN
 instruction we can reduce the number of instructions even more to just two
@@ -1145,18 +1271,28 @@ Since none of the test programs results in a generated bytecode that exceeds
 100 instructions the differences at generating are minimal but in some cases
 still notable.
 
-When we compare the generation time of fizz\_buzz.imp in Figure 1 and Figure 4
-we can see that the time it took to generate the byte code increased by 0.2ms.
-This increase might seem very little and irrelevant but the generated byte code
-only consists of 57 instructions. If this would be a big program resulting in
-thousands of instructions the time of code generation would noticable increase
-as the time needed to create superinstructions grows linear to the byte code
-(see Section \ref{sec:replacing_superinstructions}).
+When we compare the generation time of fizz\_buzz.imp in Figure \ref{fig:no_op}
+and Figure \ref{fig:all_op} we can see that the time it took to generate the
+byte code increased by 0.2ms. This increase might seem very little and
+irrelevant but the generated byte code only consists of 57 instructions. If
+this would be a big program resulting in thousands of instructions the time of
+code generation would noticable increase as the time needed to create
+superinstructions grows linear to the byte code (see Section
+\ref{sec:replacing_superinstructions}).
 
 \section{Summary}
+what have we archived?
+- exploring how to write an vm interpreter in Rust
+    -> learnings
+        - using enum as bytecode
+        - find a better way to implement threaded code
+
+- what 
+
 %TODO
 
 \section{Future Work}
+% TODO the heuristic thing
 The last section of this paper will focus on ways to improve this project
 in the future.
 
@@ -1185,6 +1321,12 @@ Section \ref{item:dead_code_elimination}.
 Another thing that can be done in the future is to add more superinstructions.
 For that it would be useful to create more benchmark examples and see what
 instructions are used frequently to create superinstructions out of them.
+
+An interesting extension to the integration of superinstructions was mentioned
+in the paper 'Optimizing an ANSI C Interpreter with Superoperators'
+~\cite{superoperators} where they have used a heuristic method to infer good
+sets of superinstructions. This approach automates the process of finding good
+superinstructions to use.
 
 \clearpage
 \bibliographystyle{plain}

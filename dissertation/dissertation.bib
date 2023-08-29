@@ -7,6 +7,22 @@ title = {The Structure and Performance of Efficient Interpreters.},
 volume = {5},
 journal = {J. Instruction-Level Parallelism}
 }
+@article{superoperators,
+author = {Proebsting, Todd A.},
+title = {Optimizing an ANSI C Interpreter with Superoperators},
+year = {1995},
+isbn = {0897916921},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/199448.199526},
+doi = {10.1145/199448.199526},
+abstract = {This paper introduces superoperators, an optimization technique for bytecoded interpreters. Superoperators are virtual machine operations automatically synthesized from smaller operations to avoid costly per-operation overheads. Superoperators decrease executable size and can double or triple the speed of interpreted programs. The paper describes a simple and effective heuristic for inferring powerful superoperators from the usage patterns of simple operators.The paper describes the design and implementation of a hybrid translator/interpreter that employs superoperators. From a specification of the superoperators (either automatically inferred or manually chosen), the system builds an efficient implementation of the virtual machine in assembly language. The system is easily retargetable and currently runs on the MIPS R3000 and the SPARC.},
+booktitle = {Proceedings of the 22nd ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+pages = {322–332},
+numpages = {11},
+location = {San Francisco, California, USA},
+series = {POPL '95}
+}
 @article{vmgen,
 author = {Ertl, M. Anton and Gregg, David and Krall, Andreas and Paysan, Bernd},
 title = {Vmgen: A Generator of Efficient Virtual Machine Interpreters},
