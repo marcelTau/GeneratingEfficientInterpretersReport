@@ -1,5 +1,5 @@
 \documentclass{article}
-\title{Dissertation}
+\title{Generating Efficient Interpreters}
 \author{
     Marcel Taubert  (mt652)\\
     20962335        \\
@@ -16,7 +16,7 @@
 \begin{document}
 \maketitle
 \clearpage
-% TODO \tableofcontents
+\tableofcontents
 \section{Introduction}
 
 %1. Introduction: objectives, intro to contents (overview)
@@ -61,28 +61,29 @@
 %*/
 
 In today's modern world, everything operates through code. We all use
-technology that's powered by code, whether we realize it or not. But most
-people, and even a lot of programmers, have no understanding about how the code
-is executed on their devices.
+technology that's powered by code, whether we realize it or not. However, most
+individuals, including a substantial number of programmers, lack an
+understanding of how the code is executed on their devices.
 
 \subsection{What is an interpreter?}
-In general there are two ways to execute code. Both approaches include the
-process of translating the human readable code into a more abstract form that
-the computer can understand. 
+
+In general, there are two approaches to executing code. Both methods involve
+translating the human-readable code into a more abstract form that the computer
+can understand.
 
 The first technique describes the process of code being compiled (translated)
-into machine code. The end product is a stand alone program that can be
+into machine code. The end product is a stand-alone program that can be
 executed at any time on the architecture it was compiled for.
 
-The second approach is called 'interpreting'. There are two primary methods to
+The second approach is called 'interpreting'. There are two primary methods for
 how an interpreter works. One approach is called a tree-walk interpreter. In
-this case the interpreter just walks the generated abstract syntax tree and
+this case, the interpreter just walks the generated abstract syntax tree and
 executes it. The second approach is a virtual machine interpreter which
 involves an extra step between the generation of the syntax tree and the
 execution. A compiler walks the tree and generates byte code. This bytecode
 will then be fed into the virtual machine which executes it. We will use a
 virtual machine interpreter in this paper. Interpreters are generally easier to
-implement and have some other advantages that makes them more approachable than
+implement and have some other advantages that make them more approachable than
 compilers like portability or a fast edit-compile-run cycle as stated by the
 authors of vmgen ~\cite{vmgen}. 
 
@@ -107,20 +108,20 @@ the stream of bytecode instructions as input and executes them. ~\cite{vmgen}
 The bytecode or intermediate representation used in a VM interpreter is usually
 designed to be very similar to a real machine. ~\cite{vmgen}
 
-Some real world examples of virtual machine interpreters are for example the
+Some real-world examples of virtual machine interpreters are for example the
 JVM (Java Virtual Machine) or the PVM (Python Virtual Machine).
 
 
 \subsection{Virtual machine}
-When we are talking about virtual machines we distinguish between stack based VMs and 
-register based VMs.
+When we are talking about virtual machines we distinguish between stack-based VMs and 
+register-based VMs.
 
-Each of the version has it's advantages and disadvantages.
+Each of the versions has its advantages and disadvantages.
 
-Stack based virtual machines are generally easier to implement than the register based approach.
-That shows for example in the complexity of the intermediate representation used in the virtual 
-machine. The stack based bytecode has a tendency of being smaller and by that more efficient in 
-comparison to the rather complex bytecode instructions of the register based approach.
+Stack-based virtual machines are generally easier to implement than the register-based approach.
+That shows for example the complexity of the intermediate representation used in the virtual 
+machine. The stack-based bytecode tends towards being smaller and by that more efficient in 
+comparison to the rather complex bytecode instructions of the register-based approach.
 
 \begin{verbatim}
 typical stack based instruction:
@@ -132,36 +133,37 @@ typical register based instruction:
 LD R1, 42 -- load value `42` into register R1
 \end{verbatim}
 
-This simplicity is the reason we have to decided to rely on a stack based virtual machine in
+This simplicity is the reason we have decided to rely on a stack-based virtual machine in
 this paper.
 
 \subsection{Optimizations}
-%TODO rewrite this, not saying compilers try to optimize
-When executing code written in an language that uses a virtual machine
-interpreter, in general, the compiler does not just generate bytecode for the
-VM but also tries to optimize as much as possible to ensure that the execution
-of the produced bytecode will be as fast as possible. 
-This optimization part of the compiler is by far one of the most crucial tasks
-of a compiler.
+Optimiztions are essential for delivering efficient and performant execution of
+programs. These optimizations can be implemented by the compiler directly or
+other parts of a VM interpreter such as the JIT (Just in Time) compiler, that
+are more complex and we will not be covered in this paper.
+
+Optimizations generally involve a trade-off in compilation time and memory
+against execution speed. This results of additional passes on the generated
+byte code for example that are needed to implement certain optimizations.
 
 During the development of this project we have looked at a number of different
 optimizations. Some of the optimizations that we have implemented for the
-project are threaded code and superinstructions.
+project are threaded code inside of the interpreter and superinstructions in
+the compiler.
 
 \subsection{Automation}
-%TODO remove this?
 Writing an interpreter for a programming language can be a tedious and
-challenging task on it's own. Thinking about how to keep the code efficient and
-additionally implement optimizations makes it even harder.
+challenging task on its own. Thinking about how to keep the code efficient and
+implement optimizations makes it even harder.
 
-One solution to this is automating the process of writing a virutal machine
+One solution to this is automating the process of writing a virtual machine
 interpreter.
 
 This would prevent many error sources such as human errors and lead to enhanced
 code quality. By eliminating the manual writing work, the programmer can focus
 on higher-level aspects of the project.
 
-Due to quicker development cycles the interpreter can be fine-tuned wihtout
+Due to quicker development cycles, the interpreter can be fine-tuned without
 needing to change the code and be more efficient.
 
 \subsection{Objectives}
@@ -481,8 +483,8 @@ In the following section we will go into detail about why we have used the
 techniques and tools as we did, re-evaluate on the decisions and present 
 learnings.
 
-The choice of the implementation langauge had the most influence on the
-efficiency of the VM interpreter.
+The choice of the implementation langauge had probably the most influence on
+the efficiency of the VM interpreter.
 
 The industry standard for implementing such systems is either C or assembly.
 We made the decision to use Rust early on to explore how we can use it's
@@ -518,8 +520,9 @@ A string in Rust contains:
 \end{verbatim}
 
 A more efficient approach to represent byte code in Rust would be to just
-define each instruction by a unique integer. By doing this, we would basically
-use the same technique as using enums in C.
+define each instruction by a unique integer. By doing this, we would use the
+same technique as using enums in C and loose the convenience of using Rust's
+language features.
  
 A big downside that followed the decision to use Rust was the way we have
 implemented the computed goto optimization. The detailed implementation is
@@ -545,36 +548,21 @@ keep the implementation as simple as possible. The possible impelementation of
 a register based virutal machine in the future is more described in the Section
 \ref{sec:future}.
 
-%You have a big downside to discuss in your approach, in that you saw a big
-%slowdown when you tried to add threaded code. You can write about how the
-%choice to use Rust, and the particular Rust types/features you used, brought
-%that about. Like, that you used enums and discriminants a hash table, whereas a
-%lower level VM implementation would represent the bytecode as a byte array and
-%the computed GOTO table as a plain array of pointers.
-      
-
 \section{Description of work}
 The goal of this project is to build a virtual machine interpreter and 
 explore the implementation of such in the Rust programming language.
 
 \subsection{Tools used}
-During the development of this project we used three programming languages. We
-build the virtual machine and all parts of the interpreter in Rust and used
-Python to visualize any benchmarking results. The input language of the
-interpreter is the Imp programming language (see section
-\ref{sec:input_language}). ~\cite{Pierce:SF1}
+During the development of this project we used three programming languages. 
 
-%TODO maybe this in approaches ??
-%But why did we use Rust and not the C programming language or assembly like
-%most other systems do?
-%One reason for that is that as stated before most of the already existing
-%solutions are written in C and assembly and we wanted to explore something new.
-%Another reason why we decided to use Rust is that we were looking for a low level
-%systems programming language that allows us to work as efficient as possible
-%while still offering high level features like match statements and iterators.
-%An extension to that is Rust's expressive type system and strict memory
-%management rules which helps avoiding many kinds of errors that appear in 
-%standard C programming.
+\begin{enumerate}
+    \item \textbf{Rust}:\\
+        We used Rust to build all parts of the virtual machine interpreter.
+    \item \textbf{Python}:\\
+        We used Python to capture and visualize benchmark results using matplotlib.
+    \item \textbf{Imp}:\\
+        Imp is the input language the VM interpreter operates on. \ref{sec:input_language}
+\end{enumerate}
 
 \subsection{Virtual Machine}
 The virtual machine, the backend of the VM interpreter, is the part that
@@ -659,40 +647,15 @@ pub enum ByteCode {
 \end{verbatim}
 \textit{Rust representation of the Byte Code} \\
 
-%TODO this is now in approaches
-%One downside of using the convenient Rust way of using enums to represent byte
-%code is that they are relatively large in memory.
-
-%One byte code instruction adds up to 32 bits in memory. 
-%Enums in rust behave like a tagged union. That means the size of each variant
-%is equal to the size of the biggest field + an enum tag.
-
-%The largest field in our byte code representation is the Jz label. It contains
-%a String and an i32.
-
-%\begin{verbatim}
-%A string in Rust contains:
-    %8 bits -> pointer to the chars
-    %8 bits -> len of the string
-    %4 bits -> the i32 value
-    %8 bits -> enum tag
-    %+ padding
-
-    %adds up to 32 bits.
-%\end{verbatim}
-%This decision might be good for developing since the Rust compiler will prevent
-%you from making mistakes such as forgetting to check for a variant in a match
-%statement but is not really efficient.
-
 \subsection{Interpreter}
 The interpreter consists of a scanner and a parser. We have decided to
 handwrite both parts instead of generating them. Even though the scanner and
 the parser are not the most performance critical parts of an interpreter we
-decided to handwrite them in Rust.
+decided to handwrite them in Rust to have full control over what is happening.
 
 \subsubsection{Scanner}
-The scanner was implemented very straight forward by using a match statement 
-to iterate the source code and output a stream of tokens.
+The scanner was implemented very straight forward by using a match statement
+inside a while loop to iterate the source code and output a stream of tokens.
 
 Tokens are defined as the token type and an optional literal.
 
@@ -793,7 +756,7 @@ Some common techniques are:
         Remove parts of the code that are never to be used.
 
         Consider the follwing C code. In this case the variable `c` is never
-        used. So the statement `int c = 3;` does not need to be compiled
+        used. So the statement `int c = 3;` does not need to be compiled.
         \begin{verbatim}
         int main() {
             int a = 1;
@@ -1380,18 +1343,28 @@ superinstructions grows linear to the byte code (see Section
 \ref{sec:replacing_superinstructions}).
 
 \section{Summary}
-what have we archived?
-- exploring how to write an VM interpreter in Rust
-    -> learnings
-        - using enum as bytecode
-        - find a better way to implement threaded code
+Efficiency of an virtual machine interpreter is not just dependent on the
+optimizations it implements on the generated code but also requires the virtual
+machine and the interpreter to use efficient techinques. Factors like the
+design of the byte code for the VM or layout of the byte code in the memory are
+important factors to consider when trying to write an efficient VM interpreter.
 
-- what 
+We explored the implementation in Rust, using it's high level features. We
+showed that those features, such as Rust's enums, are a convenient way to
+implement a VM interpreter but might not be the most optimal approach to it.
+When comparing it to how you would implement for example the byte code in C, we
+can see that the technique that is not that convenient for the developer is
+actually way faster and more efficent.
 
-%TODO
+The same applies to the technique used to implement optimizations like the
+threaded code in the interpreter.
+
+When talking about optimizations, we showed that even simple optimizations
+like superinstructions can have a measurable impact on performance. 
 
 \section{Future Work}
 \label{sec:future}
+% TODO maybe run the program on other / older machines to see how it behaves there
 The last section of this paper will focus on ways to improve this project
 in the future.
 
