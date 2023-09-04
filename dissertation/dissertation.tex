@@ -150,12 +150,14 @@ development cycles, the interpreter can be fine-tuned without needing to change
 the code and be more efficient.
 
 \subsection{Objectives} 
-This paper will use the Rust programming language to
-build each part of a virtual machine interpreter with the eventual goal of
-automating the generation of itself depending on a given configuration. We will
-explore techniques and approaches on how to build a VM interpreter in Rust and
-use benchmarking to visualize results highlighting the effects of
-optimizations.
+This paper will use the Rust programming language to build each part of a
+virtual machine interpreter with the eventual goal of automating the generation
+of itself depending on a given configuration. We will explore techniques and
+approaches on how to build a VM interpreter in Rust and use benchmarking to
+visualize results, highlighting the effects of optimizations. Additionally, we
+will compare the results obtained using Rust's convenient high-level features
+against the standard approach of using C or assembly, providing valuable
+insights into the benefits of using Rust for this particular task.
 
 \section{Description of the problem}
 When it comes to the problem that we are trying to solve there are two main
@@ -1312,7 +1314,7 @@ syntax we can understand to automatically implement them during generation.
 \\\\
 Another way to improve this project in the future is to think about a different
 way to model the byte code inside of the Rust code as our chosen approach was
-not the most efficient. 
+not the most efficient.
 \\\\
 To further improve the efficiency we can implement more optimization techniques
 in the future. To name a few optimizations that should be pretty easy to
