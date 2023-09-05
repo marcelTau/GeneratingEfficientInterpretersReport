@@ -1,0 +1,250 @@
+12.4
+I got some literature sent to me by Michael. The book "Essentials of
+Compilation". He has also talked to me about another book named "Crafting
+interpreters" but I have already read it. I will skim it again to remind
+me of the used concepts.
+
+13.4
+I have some questions about the scope of the projects. I planned a
+meeting with Michael tomorrow to get answers to the following 
+questions:
+- What exactly am I building? Lua interpreter in haskell
+- About the project to be more focused on development, how would that look like?
+- What would the dis look like then?
+- Internship?
+
+14.4
+We had a meeing and modeled the following idea of the project.
+
+1. Model a simple language
+2. write a compiler for that in haskell
+3. that compiler emits bytecode
+4. interpreter for the bytecode in C
+
+My tasks until the next meeting are to create a repo for the code
+and one for the report.
+
+I will be using LaTeX to write the report and Michael told me
+that he will help me set it up since I have never worked with it.
+
+15.4
+I created the repos and invited Michael to be a contributor.
+
+21.4
+Meeting:
+We have decided to use C as our programming language of implementation. We
+sketched out a simple lexer and parser for arithmetic expressions on the
+whiteboard. 
+Michael explained how to generate an AST and how to walk it recursively.
+
+Critical review (9th may):
+Critical review about vmgen
+Michael will send me some papers to read and then we can decide next week
+on which to choose.
+
+23.4
+Reading papers and highlighting important parts in them.
+
+24.4
+Sketching out some structure of the critical review:
+
+what is this project about
+ - generating efficient interpreters
+ - build a simple compiler that outputs bytecode 
+ - in the future
+    - generate this 
+what are vm interpreters
+why generating them
+ - lots of repetitive work that can be automated
+ - like code generation, etc, and optimizations (vmgen)
+why care about efficieny
+ - take from the first paper
+
+28.4
+We talk about the papers for the critial review and Michael 
+gives me a structure to follow
+
+9.5
+Critical review submitted 
+
+
+12.5
+Start developing lexer and parser. I follow the structure used 
+in 'Crafting Interpreters'.
+
+17.5
+Meeting:
+I mention that I'd rather not use C to write the interpreter
+but I'd be more interested in Rust. Michael shows me some 
+research about implementing the 'computed-goto' optimiztion
+in Rust.
+We decide that we can try something different and not use C.
+
+18.5
+I apply the logic from Crafting interpreters to quickly build a 
+working scanner and parser for arithmetic expressions in Rust.
+
+24.5
+Meeting:
+We decide to build an interpreter to test the parser.
+A print statement would be useful to quickly test the code.
+
+26.5
+Using the visitor pattern as described in Crafting Interpreters
+the interpreter is quickly build. Using Rust I had some problems
+regarding the borrow checker but Rc<RefCell<>> works.
+
+27.5
+The interpreter works and the print statement is implemented.
+Now simple programs like print 1 + 2 * 3 work :)
+
+31.5
+Meeting:
+We speek about extending the arithmetic expression parser to a real
+language. We're thinking about Lua.
+Michael shows me a language called Imp and tells me there is a book
+that uses this language as a tool to teach about interpreters.
+
+1.6
+Im reading the book about Imp and highlight important parts.
+
+7.6
+Meeting:
+We decide to use Imp as the input language for the project.
+My task for next week:
+- implement constructs from Imp
+- if - else 
+- while
+- variable assignment
+...
+
+8.6
+Variable assignment is pretty easy and since Imp does not have scopes
+we can store all variables in a hashmap.
+
+9.6
+I cant get if else to work. i need to implement jumps 
+
+begin_if
+condition
+jnz -> end_if
+.. then
+end_if
+
+
+14.6
+Meeting:
+Michael shows me on the whiteboard how to implement jumps. The solution
+is a second iteration on the bytecode, first set a label and then cal-
+culate the offsets based on the label.
+
+16.6
+Im working on the jumps and I ask Michael about simple operations where
+we already know all the values at compile time. We decide that we can
+implement an optimization called constant folding. 
+
+Now we can, during compile time, calculate values if all the operants 
+are known at compile time.
+
+17.6
+I've got the jumps working, and got the bytecode working as far as we've
+discussed.
+
+24.6
+Meeting:
+I need to write an early deliverable.
+
+We discuss on what is needed for the early deliverable:
+1/2 page about vm interpreters etc
+1page technical about the lanague, stack 
+1/2 future work
+
+I need to read the papers Michael gave me and highlight important
+parts.
+
+28.6 
+Writing the early deliverable.
+
+4.7
+I have some troubles finding the citation for the papers I use in the
+early deliverable.
+
+Michael sends me a site where I can find the citations in the right
+format for all my references.
+
+6.7
+Meeting:
+Michael reads through my early deliverable before I submit it. He 
+sends me another paper to have a look at and maybe wrtie a bit about
+it in the early deliverable
+
+7.7
+Early deliverable submission.
+
+13.7
+Meeting
+We want to implement a bytecode interpreter.
+Were discussing that we need a structure that holds the current vm state
+with a stack and a program counter.
+
+15.7
+I look for tools to do benchmarks. In linux I can use `time` and `perf` and
+can use gnuplot to generate visualization. Another idea would be to write 
+that in python using matplotlib.
+
+16.7
+I use python to create the benchmark tool.
+
+18.7
+Im implementing the bytecode interpreter, this is quite straightforward.
+
+25.7
+Meeting
+We're talking about implementing the computed goto optimization.
+Michael explains to me how that works and shows me an example of
+Rust code.
+
+28.7
+Im struggling implementing the optimization, I ask michael about how
+we can use the index of an enum variant as key to hashmap. 
+We find the solution of using the std::mem::disciminant function but
+we know that this will cause another indirection in the code which
+will be most likely a performance breakdown.
+
+3.8
+The benchmarks show that the optimzation is not really optimizing 
+anything but rather causing a slowdown. Since we dont have to much
+time left, we decide to keep it like this and note the results.
+
+6.8
+Im starting to read more papers in preparation of the final dis.
+
+9.8
+Michael gives me some advice on the first draft of the dissertation.
+
+11.8
+I fixed the things he gave me as a feedback and I wrote down more
+of the structure that we want to follow.
+
+13.8
+Im creating more benchmark programs and asking Michael about what kind
+of programs we should add.
+He gives me the advice to see the generated bytecode of the programs
+and write different programs that produce different bytecode so we can
+see what optimizations work the best for what kind of programs.
+
+15.8
+Im finishing of the last changes to the code and the benchmark programs
+
+18.8
+Corpus delivery.
+
+19.8
+We discuss about the literature review part of the dissertation. I need to read
+more papers 
+
+22.8
+Meeting:
+We talk about the
+
+

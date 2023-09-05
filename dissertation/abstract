@@ -1,0 +1,12 @@
+Building a virtual machine interpreter following the traditional approach of
+using C or assembly as an implementation langauge can be frustrating,
+furthermore since we have modern high-level langauges that provides us with
+safety features and an overall better development experience. This paper
+describes the process of building a virtual machine interpreter in Rust which
+highlight the convenience of modern high-level language features. It shows the
+impact of optimizations and efficient implementations in visual benchmarks and
+compares against industry-standard approaches. We discussed the advantages and
+disadvantages of different implementation approaches such as stack-based and
+register-based virtual machines, compiler optimizations like superinstructions
+and constant folding or interpreter based optimizations such as the computed goto
+optimization.
