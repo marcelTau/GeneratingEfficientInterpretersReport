@@ -18,4 +18,4 @@ $(THESIS).aux: $(THESIS).bib
 	pdflatex $(THESIS).tex -draftmode
 
 clean:
-	rm -rf *.aux *.lof *.log *.lot *.toc *.bbl *.blg *pdf
+	rm -rf *.aux *.lof *.log *.lot *.toc *.bbl *.blg dissertation.pdf
